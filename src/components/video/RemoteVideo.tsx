@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from 'react';
 import { useCallStore } from '../../store/callStore';
-import { useMatchmakingStore } from '../../store/matchmakingStore';
 import { User, ShieldAlert } from 'lucide-react';
 import { Spinner } from '../ui/Spinner';
 

@@ -1,4 +1,3 @@
-import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryProvider } from './providers/QueryProvider';
 import { ToastProvider } from './providers/ToastProvider';

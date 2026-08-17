@@ -30,7 +30,7 @@ export function useCall() {
   const setMatched = useMatchmakingStore((state) => state.setMatched);
   const setPartnerConnected = useMatchmakingStore((state) => state.setPartnerConnected);
 
-  const connectionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const connectionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const endCall = useCallback(() => {
     if (connectionTimeoutRef.current) {

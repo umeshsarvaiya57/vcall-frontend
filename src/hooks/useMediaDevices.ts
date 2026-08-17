@@ -81,6 +81,7 @@ export function useMediaDevices() {
   return {
     localStream,
     isCameraEnabled,
+    isMuted,
     isMicrophoneEnabled: !isMuted,
     permissionError,
     requestMedia,

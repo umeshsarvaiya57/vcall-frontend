@@ -14,8 +14,6 @@ export const ChatPage: React.FC = () => {
   const isOnline = useNetworkStatus();
 
   const {
-    callState,
-    localStream,
     isMuted,
     isCameraEnabled,
     dataChannelRef,

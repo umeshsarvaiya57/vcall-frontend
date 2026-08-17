@@ -5,7 +5,7 @@ import { IconButton } from './IconButton';
 
 export interface ModalProps {
   isOpen: boolean;
-  onClose: () => void;
+  onClose?: () => void;
   title?: string;
   size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
   children: React.ReactNode;

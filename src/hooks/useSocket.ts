@@ -11,9 +11,13 @@ export function useSocket() {
   useEffect(() => {
     const handleConnect = () => setIsConnected(true);
     const handleDisconnect = () => setIsConnected(false);
+    const handleConnectError = (err: any) => {
+      console.error('Socket connection error:', err.message, err.description);
+    };
 
     socket.on('connect', handleConnect);
     socket.on('disconnect', handleDisconnect);
+    socket.on('connect_error', handleConnectError);
 
     // Initial state check
     setIsConnected(socket.connected);
@@ -21,6 +25,7 @@ export function useSocket() {
     return () => {
       socket.off('connect', handleConnect);
       socket.off('disconnect', handleDisconnect);
+      socket.off('connect_error', handleConnectError);
     };
   }, []);
 

@@ -16,6 +16,7 @@ export function useWebRTC() {
 
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const dataChannelRef = useRef<RTCDataChannel | null>(null);
+  const [dataChannel, setDataChannel] = useState<RTCDataChannel | null>(null);
   const [connectionState, setConnectionState] = useState<RTCPeerConnectionState>('new');
 
   const closeConnection = useCallback(() => {
@@ -23,6 +24,7 @@ export function useWebRTC() {
       dataChannelRef.current.close();
       dataChannelRef.current = null;
     }
+    setDataChannel(null);
     if (pcRef.current) {
       pcRef.current.onicecandidate = null;
       pcRef.current.ontrack = null;
@@ -100,6 +102,7 @@ export function useWebRTC() {
     // Create peer-to-peer messaging channel
     const dc = pc.createDataChannel('chat', { ordered: true });
     dataChannelRef.current = dc;
+    setDataChannel(dc);
 
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
@@ -114,6 +117,7 @@ export function useWebRTC() {
     // Listen for data channel setups on responder side
     pc.ondatachannel = (event) => {
       dataChannelRef.current = event.channel;
+      setDataChannel(event.channel);
     };
 
     await pc.setRemoteDescription(new RTCSessionDescription(offer));
@@ -139,6 +143,7 @@ export function useWebRTC() {
   return {
     pcRef,
     dataChannelRef,
+    dataChannel,
     localStream,
     remoteStream,
     connectionState,

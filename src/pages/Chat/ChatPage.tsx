@@ -16,7 +16,7 @@ export const ChatPage: React.FC = () => {
   const {
     isMuted,
     isCameraEnabled,
-    dataChannelRef,
+    dataChannel,
     startSearching,
     endCall,
     nextCall,
@@ -86,7 +86,7 @@ export const ChatPage: React.FC = () => {
         {/* Text chat sidebar panel */}
         {isChatOpen && (
           <div className="w-full md:w-[350px] lg:w-[380px] shrink-0 min-h-0 h-[40%] md:h-full z-10 transition-all duration-300">
-            <ChatBox dataChannel={dataChannelRef.current} />
+            <ChatBox dataChannel={dataChannel} />
           </div>
         )}
       </div>

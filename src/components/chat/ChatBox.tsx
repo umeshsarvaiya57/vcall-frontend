@@ -31,7 +31,31 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ dataChannel }) => {
     }
   };
 
-  const isConnected = dataChannel && dataChannel.readyState === 'open';
+  const [isConnected, setIsConnected] = useState(
+    dataChannel ? dataChannel.readyState === 'open' : false
+  );
+
+  // Sync isConnected state with dataChannel status
+  useEffect(() => {
+    if (!dataChannel) {
+      setIsConnected(false);
+      return;
+    }
+
+    const handleOpen = () => setIsConnected(true);
+    const handleClose = () => setIsConnected(false);
+
+    // Set initial connection state
+    setIsConnected(dataChannel.readyState === 'open');
+
+    dataChannel.addEventListener('open', handleOpen);
+    dataChannel.addEventListener('close', handleClose);
+
+    return () => {
+      dataChannel.removeEventListener('open', handleOpen);
+      dataChannel.removeEventListener('close', handleClose);
+    };
+  }, [dataChannel]);
 
   return (
     <div className="flex flex-col h-full bg-bgSurface border border-borderDark/40 rounded-2xl overflow-hidden">

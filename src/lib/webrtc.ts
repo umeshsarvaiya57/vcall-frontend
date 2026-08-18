@@ -28,9 +28,9 @@ export function getIceServers(): RTCIceServer[] {
 /**
  * Creates and returns a new RTCPeerConnection instance using the loaded config.
  */
-export function createPeerConnection(): RTCPeerConnection {
+export function createPeerConnection(customIceServers?: RTCIceServer[]): RTCPeerConnection {
   const config: RTCConfiguration = {
-    iceServers: getIceServers(),
+    iceServers: customIceServers && customIceServers.length > 0 ? customIceServers : getIceServers(),
     iceCandidatePoolSize: 10,
   };
   return new RTCPeerConnection(config);

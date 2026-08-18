@@ -40,6 +40,7 @@ export function useCall() {
   const setPartnerConnected = useMatchmakingStore((state) => state.setPartnerConnected);
 
   const connectionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const iceServersRef = useRef<RTCIceServer[] | undefined>(undefined);
 
   const endCall = useCallback(() => {
     if (connectionTimeoutRef.current) {
@@ -84,10 +85,12 @@ export function useCall() {
   useEffect(() => {
     if (!isConnected) return;
 
-    const handleMatchFound = async (data: { roomId: string; isInitiator: boolean; partnerSessionId: string }) => {
+    const handleMatchFound = async (data: { roomId: string; isInitiator: boolean; partnerSessionId: string; iceServers?: RTCIceServer[] }) => {
       if (connectionTimeoutRef.current) {
         clearTimeout(connectionTimeoutRef.current);
       }
+
+      iceServersRef.current = data.iceServers;
 
       setRoomId(data.roomId);
       setCallState('connecting');
@@ -106,7 +109,7 @@ export function useCall() {
         try {
           // Delay offer slightly to allow partner to register handlers
           setTimeout(async () => {
-            await createOffer(data.roomId);
+            await createOffer(data.roomId, data.iceServers);
           }, 600);
         } catch (err) {
           console.error('Failed to create offer:', err);
@@ -118,7 +121,7 @@ export function useCall() {
       const activeRoom = useCallStore.getState().roomId;
       if (activeRoom) {
         try {
-          await webrtcHandleOffer(data.offer, activeRoom);
+          await webrtcHandleOffer(data.offer, activeRoom, iceServersRef.current);
         } catch (err) {
           console.error('Failed to process offer:', err);
         }

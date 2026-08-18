@@ -36,10 +36,10 @@ export function useWebRTC() {
     setConnectionState('closed');
   }, [setRemoteStream]);
 
-  const initPeerConnection = useCallback((room: string) => {
+  const initPeerConnection = useCallback((room: string, customIceServers?: RTCIceServer[]) => {
     closeConnection();
 
-    const pc = createPeerConnection();
+    const pc = createPeerConnection(customIceServers);
     pcRef.current = pc;
 
     pc.onconnectionstatechange = () => {
@@ -96,8 +96,8 @@ export function useWebRTC() {
     return pc;
   }, [localStream, setRemoteStream, setCallState, setConnectionStatusText, closeConnection]);
 
-  const createOffer = useCallback(async (room: string) => {
-    const pc = initPeerConnection(room);
+  const createOffer = useCallback(async (room: string, customIceServers?: RTCIceServer[]) => {
+    const pc = initPeerConnection(room, customIceServers);
 
     // Create peer-to-peer messaging channel
     const dc = pc.createDataChannel('chat', { ordered: true });
@@ -111,8 +111,8 @@ export function useWebRTC() {
     return offer;
   }, [initPeerConnection]);
 
-  const handleOffer = useCallback(async (offer: RTCSessionDescriptionInit, room: string) => {
-    const pc = initPeerConnection(room);
+  const handleOffer = useCallback(async (offer: RTCSessionDescriptionInit, room: string, customIceServers?: RTCIceServer[]) => {
+    const pc = initPeerConnection(room, customIceServers);
 
     // Listen for data channel setups on responder side
     pc.ondatachannel = (event) => {

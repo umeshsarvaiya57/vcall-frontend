@@ -9,7 +9,14 @@ export function useSocket() {
   const [isConnected, setIsConnected] = useState(socket.connected);
 
   useEffect(() => {
-    const handleConnect = () => setIsConnected(true);
+    const handleConnect = () => {
+      setIsConnected(true);
+      const sessId = sessionStorage.getItem('sessionId');
+      const gndr = sessionStorage.getItem('gender');
+      if (sessId && gndr) {
+        socket.emit('SESSION_INIT', { sessionId: sessId, gender: gndr as 'male' | 'female' });
+      }
+    };
     const handleDisconnect = () => setIsConnected(false);
     const handleConnectError = (err: any) => {
       console.error('Socket connection error:', err.message, err.description);

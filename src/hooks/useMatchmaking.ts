@@ -1,6 +1,5 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useSocket } from './useSocket';
-import { useSessionStore } from '../store/sessionStore';
 import { useMatchmakingStore } from '../store/matchmakingStore';
 import { useCallStore } from '../store/callStore';
 
@@ -10,8 +9,7 @@ import { useCallStore } from '../store/callStore';
  */
 export function useMatchmaking() {
   const { socket } = useSocket();
-  const sessionId = useSessionStore((state) => state.sessionId);
-  const gender = useSessionStore((state) => state.gender);
+
 
   const isSearching = useMatchmakingStore((state) => state.isSearching);
   const setSearching = useMatchmakingStore((state) => state.setSearching);
@@ -21,21 +19,32 @@ export function useMatchmaking() {
   const setCallState = useCallStore((state) => state.setCallState);
   const setRoomId = useCallStore((state) => state.setRoomId);
 
+  useEffect(() => {
+    const handleSessionReady = () => {
+      // If the client's intent is to search, join queue when session is ready on the server
+      if (useMatchmakingStore.getState().isSearching) {
+        socket.emit('JOIN_QUEUE');
+      }
+    };
+
+    socket.on('SESSION_READY', handleSessionReady);
+    return () => {
+      socket.off('SESSION_READY', handleSessionReady);
+    };
+  }, [socket]);
+
   const startSearching = useCallback(() => {
+    setSearching(true);
+    setMatched(false);
+    setPartnerConnected(false);
+    setCallState('searching');
+
     if (!socket.connected) {
       socket.connect();
-    }
-
-    if (sessionId && gender) {
-      // Connect socket and register anonymous identity
-      socket.emit('SESSION_INIT', { sessionId, gender });
+    } else {
       socket.emit('JOIN_QUEUE');
-      setSearching(true);
-      setMatched(false);
-      setPartnerConnected(false);
-      setCallState('searching');
     }
-  }, [socket, sessionId, gender, setSearching, setMatched, setPartnerConnected, setCallState]);
+  }, [socket, setSearching, setMatched, setPartnerConnected, setCallState]);
 
   const stopSearching = useCallback(() => {
     socket.emit('LEAVE_QUEUE');

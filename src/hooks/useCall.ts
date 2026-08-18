@@ -20,7 +20,16 @@ export function useCall() {
 
   const media = useMediaDevices();
   const webrtc = useWebRTC();
+  const {
+    closeConnection,
+    createOffer,
+    handleOffer: webrtcHandleOffer,
+    handleAnswer: webrtcHandleAnswer,
+    handleIceCandidate: webrtcHandleIceCandidate,
+  } = webrtc;
+
   const matchmaking = useMatchmaking();
+  const { leaveRoom } = matchmaking;
 
   const callState = useCallStore((state) => state.callState);
   const setCallState = useCallStore((state) => state.setCallState);
@@ -38,11 +47,11 @@ export function useCall() {
       connectionTimeoutRef.current = null;
     }
 
-    webrtc.closeConnection();
-    matchmaking.leaveRoom();
+    closeConnection();
+    leaveRoom();
     clearMessages();
     setCallState('ready');
-  }, [webrtc, matchmaking, clearMessages, setCallState]);
+  }, [closeConnection, leaveRoom, clearMessages, setCallState]);
 
   const nextCall = useCallback(async () => {
     if (connectionTimeoutRef.current) {
@@ -50,7 +59,7 @@ export function useCall() {
       connectionTimeoutRef.current = null;
     }
 
-    webrtc.closeConnection();
+    closeConnection();
     clearMessages();
 
     // Notify server of skip and jump directly back into matchmaking queue
@@ -58,7 +67,7 @@ export function useCall() {
     setCallState('searching');
     setMatched(false);
     setPartnerConnected(false);
-  }, [webrtc, clearMessages, socket, setCallState, setMatched, setPartnerConnected]);
+  }, [closeConnection, clearMessages, socket, setCallState, setMatched, setPartnerConnected]);
 
   const reportUser = useCallback((reason: string, description?: string) => {
     if (!roomId) return;
@@ -97,7 +106,7 @@ export function useCall() {
         try {
           // Delay offer slightly to allow partner to register handlers
           setTimeout(async () => {
-            await webrtc.createOffer(data.roomId);
+            await createOffer(data.roomId);
           }, 600);
         } catch (err) {
           console.error('Failed to create offer:', err);
@@ -109,7 +118,7 @@ export function useCall() {
       const activeRoom = useCallStore.getState().roomId;
       if (activeRoom) {
         try {
-          await webrtc.handleOffer(data.offer, activeRoom);
+          await webrtcHandleOffer(data.offer, activeRoom);
         } catch (err) {
           console.error('Failed to process offer:', err);
         }
@@ -118,7 +127,7 @@ export function useCall() {
 
     const handleAnswer = async (data: { answer: RTCSessionDescriptionInit }) => {
       try {
-        await webrtc.handleAnswer(data.answer);
+        await webrtcHandleAnswer(data.answer);
       } catch (err) {
         console.error('Failed to process answer:', err);
       }
@@ -126,7 +135,7 @@ export function useCall() {
 
     const handleIceCandidate = async (data: { candidate: RTCIceCandidateInit }) => {
       try {
-        await webrtc.handleIceCandidate(data.candidate);
+        await webrtcHandleIceCandidate(data.candidate);
       } catch (err) {
         console.error('Failed to add candidate:', err);
       }
@@ -137,7 +146,7 @@ export function useCall() {
         clearTimeout(connectionTimeoutRef.current);
         connectionTimeoutRef.current = null;
       }
-      webrtc.closeConnection();
+      closeConnection();
       setPartnerConnected(false);
       setCallState('disconnected');
       toast.info('Stranger disconnected.');
@@ -148,7 +157,7 @@ export function useCall() {
         clearTimeout(connectionTimeoutRef.current);
         connectionTimeoutRef.current = null;
       }
-      webrtc.closeConnection();
+      closeConnection();
       setPartnerConnected(false);
       setCallState('ended');
       toast.info(data.reason || 'Call terminated.');
@@ -175,7 +184,21 @@ export function useCall() {
       socket.off('CALL_ENDED', handleCallEnded);
       socket.off('ERROR', handleError);
     };
-  }, [socket, isConnected, webrtc, setCallState, setRoomId, setMatched, setPartnerConnected, nextCall, toast]);
+  }, [
+    socket,
+    isConnected,
+    closeConnection,
+    createOffer,
+    webrtcHandleOffer,
+    webrtcHandleAnswer,
+    webrtcHandleIceCandidate,
+    setCallState,
+    setRoomId,
+    setMatched,
+    setPartnerConnected,
+    nextCall,
+    toast,
+  ]);
 
   // Cancel match timeouts once WebRTC transitions to connected state
   useEffect(() => {

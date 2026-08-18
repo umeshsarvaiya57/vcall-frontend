@@ -22,7 +22,7 @@ export function useMatchmaking() {
   const setRoomId = useCallStore((state) => state.setRoomId);
 
   const startSearching = useCallback(() => {
-    if (!isConnected) {
+    if (!socket.connected) {
       socket.connect();
     }
 
@@ -35,7 +35,7 @@ export function useMatchmaking() {
       setPartnerConnected(false);
       setCallState('searching');
     }
-  }, [socket, isConnected, sessionId, gender, setSearching, setMatched, setPartnerConnected, setCallState]);
+  }, [socket, sessionId, gender, setSearching, setMatched, setPartnerConnected, setCallState]);
 
   const stopSearching = useCallback(() => {
     socket.emit('LEAVE_QUEUE');

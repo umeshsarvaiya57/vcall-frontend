@@ -9,7 +9,7 @@ import { useCallStore } from '../store/callStore';
  * handling state mutations for queues and call status values.
  */
 export function useMatchmaking() {
-  const { socket, isConnected } = useSocket();
+  const { socket } = useSocket();
   const sessionId = useSessionStore((state) => state.sessionId);
   const gender = useSessionStore((state) => state.gender);
 
